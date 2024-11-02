@@ -1,25 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import {UserProvider, useUser} from './UserContext';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+import Room from './pages/Room';
+import Admin from './pages/Admin';
+import ForgotPassword from './pages/ForgotPassword';
+import ProtectedRoute from '../src/components/ProtectedRoute';
+import './styles/main.scss';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <UserProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </UserProvider>
   );
 }
 
+const AppRoutes = () => { 
+  const {userProfile,login,logout}=useUser();
+  return (
+    <div className='app'>
+      <Routes>
+        <Route path="/" element={userProfile ? <Navigate to={`/room/${userProfile?.username}`} /> : <Home />} />
+        <Route path="/login" element={<Login onLogin={login} />} />
+        <Route path="/signup" element={<SignUp onSignUp={login} />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/room/:username" element={<ProtectedRoute><Room handleLogout={logout} /></ProtectedRoute>} />
+        <Route path="/admin/:username" element={<ProtectedRoute><Admin handleLogout={logout} /></ProtectedRoute>} />
+      </Routes>
+    </div>
+  );
+}
 export default App;
