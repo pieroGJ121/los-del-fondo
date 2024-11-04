@@ -39,16 +39,46 @@ function SignUp({ onSignUp }) {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (fillData()) {
-      const uniqueId = Math.floor(Math.random() * 1000000);
-      const profileData = { ...formData, id: uniqueId };
-      setUserProfile(profileData);
-      onSignUp(profileData);
-      navigate(`/room/${formData.username}`, { state: profileData });
+      const profileData = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        username: formData.username,
+        age: formData.age,
+        email: formData.email,
+        password: formData.password,
+        phone_number: formData.phone,
+      };
+
+      try {
+        const response = await fetch('http://localhost:4000/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(profileData),
+        });
+  
+        if (!response.ok) {
+          const errorResponse = await response.json();
+          throw new Error(errorResponse.message || 'User registration failed');
+        }
+        const data = await response.json();
+        if(data.body.user) {
+          const user = data.body.user;
+          setUserProfile(user.username);
+          onSignUp(user.username);
+          navigate(`/room/${user.username}`, { state: user });
+        } else {
+          alert('User data is missing');
+        }
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
     }
   };
-
+  
   return (
     <div className="signup-page">
       <div className="form-content">

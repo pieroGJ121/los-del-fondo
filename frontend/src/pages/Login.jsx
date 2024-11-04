@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../UserContext';
 import '../styles/pages/login.scss';
 
 function Login() {
+  const { setUserProfile } = useUser();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -18,8 +20,30 @@ function Login() {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    console.log('Login attempt:', formData);
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.message || 'User login failed');
+      } 
+      const data = await response.json();
+      if(data){
+        setUserProfile(data.body.username);
+        navigate(`/room/${data.body.username}`, { state: data.body });
+      } else {
+        alert('User data is missing');
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
   };
 
   return (

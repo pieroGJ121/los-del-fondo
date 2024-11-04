@@ -1,53 +1,41 @@
 const express = require('express');
 const response = require('../../network/response');
-const contoller = require('./index');
+const controller = require('./index');
+
 const router = express.Router();
 
-router.get('/', allUsers);
-router.get('/:id', oneUser);
-router.delete('/', removeUser);
-router.post('/', addUser);
-
-async function allUsers (req,res,next) {
-    try{
-        const items = await contoller.allUsers();
-        response.success(req,res,items,200);
-    } catch (err) {
-        next(err);
-    }
+const asyncHandler = (fn) => (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
 };
-
-async function oneUser (req,res,next) {
-    try{
-        const items = await contoller.oneUser(req.params.id);
-        response.success(req,res,items,200);
-    } catch (err) {
-        next(err);
+router.get('/', asyncHandler(async (req, res) => {
+    const items = await controller.allUsers();
+    response.success(req, res, items, 200);
+}));
+router.get('/:id', asyncHandler(async (req, res) => {
+    const items = await controller.oneUser(req.params.id);
+    response.success(req, res, items, 200);
+}));
+router.delete('/', asyncHandler(async (req, res) => {
+    await controller.removeUser(req.body);
+    response.success(req, res, 'User was removed', 200);
+}));
+router.post('/', asyncHandler(async (req, res) => {
+    const items = await controller.addUser(req.body);
+    const message = req.body.id ? 'User was updated' : 'User was added';
+    response.success(req, res, items, 201);
+}));
+router.post('/login', asyncHandler(async (req, res) => {
+    const items = await controller.loginUser(req.body);
+    response.success(req, res, items, 200);
+}));
+router.post('/verify-email', asyncHandler(async (req, res) => {
+    const exists = await controller.checkEmailExists(req.body.email);
+    if (exists) {
+        response.success(req, res, 'Email exists. You will receive an email confirmation.', 200);
+    } else {
+        response.error(req, res, 'No account found with that email.', 404);
     }
-};
-
-async function removeUser (req,res,next) {
-    try{
-        const items = await contoller.removeUser(req.body);
-        response.success(req,res,'User was removed',200);
-    } catch (err) {
-        next(err);
-    }
-};
-
-async function addUser (req,res,next) {
-    try{
-        const items = await contoller.addUser(req.body);
-        if(req.body.id == 0){
-            message = 'User was added';
-        }else{
-            message = 'User was updated';
-        }
-        response.success(req,res,message,201);
-    } catch (err) {
-        next(err);
-    }
-};
+}));
 
 
 module.exports = router;
