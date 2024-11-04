@@ -1,25 +1,12 @@
 const table = 'users';
 
-module.exports = function (dbInjection) {
-    let db = dbInjection || require('../../DB/mysql');
-
-    function allUsers(){
-        return db.allUsers(table);
-    }
-    function oneUser(id){
-        return db.oneUser(table,id);
-    }
-    function removeUser(body){
-        return db.removeUser(table,body);
-    }
-    function addUser(body){
-        return db.addUser(table,body);
-    }
-
+module.exports = function (db) {
     return {
-        allUsers,
-        oneUser,
-        removeUser,
-        addUser,
-    }
-}
+        allUsers: () => db.allUsers(table),
+        oneUser: (id) => db.oneUser(table, id),
+        removeUser: (body) => db.removeUser(table, body.id),
+        addUser: (body) => db.addUser(table, body),
+        loginUser: (body) => db.loginUser(body),
+        checkEmailExists: (email) => db.checkEmailExists(email),
+    };
+};

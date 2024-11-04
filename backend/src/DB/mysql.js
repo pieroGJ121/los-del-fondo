@@ -1,78 +1,64 @@
 const mysql = require('mysql');
 const config = require('../config');
+const { use } = require('../modules/users/routes');
 
-// Connection to the database
-const dbconfig = {
+const dbPool = mysql.createPool({
+    connectionLimit: 10,
     host: config.mysql.host,
     user: config.mysql.user,
     password: config.mysql.password,
-    database: config.mysql.database
-}
-let connection;
-function handleCon(){
-    connection = mysql.createConnection(dbconfig);
-    connection.connect((err) => {
-        if(err){
-            console.error('[db err]', err);
-            setTimeout(handleCon, 2000);
-        }else{
-            console.log('DB Connected');
-        }
-    });
-    connection.on('error', err => {
-        console.error('[db err]', err);
-        if(err.code === 'PROTOCOL_CONNECTION_LOST'){
-            handleCon();
-        }else{
-            throw err;
-        }
-    });
-}
-handleCon();
+    database: config.mysql.database,
+});
 
-function allUsers(table){
+const query = (sql, params) => {
     return new Promise((resolve, reject) => {
-        connection.query(`SELECT * FROM ${table}`, (err, result) => {
-            return err ? reject(err) : resolve(result);
+        dbPool.query(sql, params, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
         });
     });
-}
-function oneUser(table, id){
-    return new Promise((resolve, reject) => {
-        connection.query(`SELECT * FROM ${table} WHERE id=${id}`, (err, result) => {
-            return err ? reject(err) : resolve(result);
-        });
-    });
-}
-function removeUser(table, data){
-    return new Promise((resolve, reject) => {
-        connection.query(`DELETE FROM ${table} WHERE id = ?`, data.id, (err, result) => {
-            return err ? reject(err) : resolve(result);
-        });
-    });
-}
-function insertUser(table, data){
-    return new Promise((resolve, reject) => {
-        connection.query(`INSERT INTO ${table} SET ?`, data, (err, result) => {
-            return err ? reject(err) : resolve(result);
-        });
-    });
-}
-function updateUser(table, data){
-    return new Promise((resolve, reject) => {
-        connection.query(`UPDATE ${table} SET ? WHERE id = ?`, [data, data.id], (err, result) => {
-            return err ? reject(err) : resolve(result);
-        });
-    });
-}
-function addUser(table, data){
-    if (data && data.id) {
-        return insertUser(table, data);
+};
+
+const allUsers = (table) => {
+    return query(`SELECT * FROM ??`, [table]);
+};
+const oneUser = (table, id) => {
+    return query(`SELECT * FROM ?? WHERE id = ?`, [table, id]);
+};
+const removeUser = (table, id) => {
+    return query(`DELETE FROM ?? WHERE id = ?`, [table, id]);
+};
+const insertUser = (table, data) => {
+    return query(`INSERT INTO ?? SET ?`, [table, data]);
+};
+const updateUser = (table, data) => {
+    return query(`UPDATE ?? SET ? WHERE id = ?`, [table, data, data.id]);
+};
+const addUser = async (table, data) => {
+    if (data.id) {
+        await updateUser(table, data);
+        return {user:data};
     } else {
-        return updateUser(table, data);
+        const result = await insertUser(table, data);
+        const newUser = {...data, id: result.insertId};
+        return {user:newUser};
     }
+};
+const findUserByEmail = async(email) =>{
+    return query(`SELECT * FROM users WHERE email = ?`, [email]);
 }
+const loginUser = async(data) =>{
+    const user = await findUserByEmail(data.email);
+    if(user.length === 0) throw new Error('User not found');
+    if(user[0].password !== data.password) throw new Error('Password is incorrect');
 
+    const {password, ...userWithoutPassword} = user[0];
+    return userWithoutPassword;
+}
+const checkEmailExists = async(email) =>{
+    const user = await findUserByEmail(email);
+    return user.length > 0;
+}
 module.exports = {
     allUsers,
     oneUser,
@@ -80,4 +66,6 @@ module.exports = {
     insertUser,
     updateUser,
     addUser,
+    loginUser,
+    checkEmailExists,
 };
