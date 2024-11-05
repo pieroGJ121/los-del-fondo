@@ -19,6 +19,36 @@ const query = (sql, params) => {
     });
 };
 
+const initializeDatabase = async () => {
+    try {
+        await query('CREATE DATABASE IF NOT EXISTS los_del_fondo');
+        await query('USE los_del_fondo');
+
+        const createTableSQL = `
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(100) NOT NULL,
+                last_name VARCHAR(100) NOT NULL,
+                username VARCHAR(100) NOT NULL UNIQUE,
+                age INT, 
+                email VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(255),
+                phone_number VARCHAR(15),
+                auth_provider ENUM('google','apple','facebook','local') DEFAULT 'local',
+                provider_id VARCHAR(255),
+                register_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+        await query(createTableSQL);
+    } catch (error) {
+        console.error('Error initializing database:', error);
+        throw error; 
+    }
+};
+
+initializeDatabase().catch(err => {
+    console.error('Failed to initialize the database:', err);
+});
 const allUsers = (table) => {
     return query(`SELECT * FROM ??`, [table]);
 };
