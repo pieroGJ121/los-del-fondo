@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate} from 'react-router-dom';
 import {UserProvider, useUser} from './UserContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -21,13 +21,13 @@ function App() {
 }
 
 const AppRoutes = () => { 
-  const {userProfile,login,logout}=useUser();
+  const {userProfile,logout}=useUser();
   return (
     <div className='app'>
       <Routes>
         <Route path="/" element={userProfile ? <Navigate to={`/room/${userProfile?.username}`} /> : <Home />} />
-        <Route path="/login" element={<Login onLogin={login} />} />
-        <Route path="/signup" element={<SignUp onSignUp={login} />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/room/:username" element={<ProtectedRoute><Room handleLogout={logout} /></ProtectedRoute>} />
         <Route path="/admin/:username" element={<ProtectedRoute><Admin handleLogout={logout} /></ProtectedRoute>} />

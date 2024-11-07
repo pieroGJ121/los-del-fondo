@@ -1,6 +1,6 @@
 const path = require('path');
 const multer = require('multer');
-const { File } = require('../../DB/mongodb');
+const { File, Project } = require('../../DB/mongodb');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -43,6 +43,12 @@ exports.addFile = async (req, res) => {
       aiContent,
     });
     await newFile.save();
+
+    await Project.findByIdAndUpdate(
+      projectId,
+      {$push: {files: newFile._id}},
+      {new:true}
+    );
     res.status(201).json({ message: 'File added successfully', file: newFile });
   } catch (error) {
     res.status(500).json({ message: 'Error adding file', error });

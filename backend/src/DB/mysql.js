@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const config = require('../config');
-const { use } = require('../modules/users/routes');
+const bcrypt = require('bcrypt');
+const {v4: uuidv4} = require('uuid');
 
 const dbPool = mysql.createPool({
     connectionLimit: 10,
@@ -26,7 +27,7 @@ const initializeDatabase = async () => {
 
         const createTableSQL = `
             CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id CHAR(36) PRIMARY KEY NOT NULL,
                 first_name VARCHAR(100) NOT NULL,
                 last_name VARCHAR(100) NOT NULL,
                 username VARCHAR(100) NOT NULL UNIQUE,
@@ -40,54 +41,41 @@ const initializeDatabase = async () => {
             )
         `;
         await query(createTableSQL);
-    } catch (error) {
-        console.error('Error initializing database:', error);
-        throw error; 
+    } catch (err) {
+        console.error('Error initializing database:', err);
+        throw err; 
     }
 };
 
 initializeDatabase().catch(err => {
     console.error('Failed to initialize the database:', err);
 });
-const allUsers = (table) => {
-    return query(`SELECT * FROM ??`, [table]);
-};
-const oneUser = (table, id) => {
-    return query(`SELECT * FROM ?? WHERE id = ?`, [table, id]);
-};
-const removeUser = (table, id) => {
-    return query(`DELETE FROM ?? WHERE id = ?`, [table, id]);
-};
-const insertUser = (table, data) => {
-    return query(`INSERT INTO ?? SET ?`, [table, data]);
-};
-const updateUser = (table, data) => {
-    return query(`UPDATE ?? SET ? WHERE id = ?`, [table, data, data.id]);
-};
+const allUsers = (table) => query(`SELECT * FROM ??`, [table]);
+const oneUser = (table, id) => query(`SELECT * FROM ?? WHERE id = ?`, [table, id]);
+const removeUser = (table, id) => query(`DELETE FROM ?? WHERE id = ?`, [table, id]);
+const insertUser = (table, data) => query(`INSERT INTO ?? SET ?`, [table, data]);
+const updateUser = (table, data) => query(`UPDATE ?? SET ? WHERE id = ?`, [table, data, data.id]);
 const addUser = async (table, data) => {
-    if (data.id) {
-        await updateUser(table, data);
-        return {user:data};
-    } else {
-        const result = await insertUser(table, data);
-        const newUser = {...data, id: result.insertId};
-        return {user:newUser};
+    if(!data.id){
+        data.id = uuidv4();
     }
+    const result = await insertUser(table, data);
+    return {user: {...data, id: result.insertId}};
 };
 const findUserByEmail = async(email) =>{
-    return query(`SELECT * FROM users WHERE email = ?`, [email]);
-}
+    const result = await query(`SELECT * FROM users WHERE email = ?`, [email]);
+    if (result.length === 0) return null;
+    return result[0];
+} 
 const loginUser = async(data) =>{
     const user = await findUserByEmail(data.email);
-    if(user.length === 0) throw new Error('User not found');
-    if(user[0].password !== data.password) throw new Error('Password is incorrect');
-
-    const {password, ...userWithoutPassword} = user[0];
+    if(!user) throw new Error('User not found');
+    const {password, ...userWithoutPassword} = user;
     return userWithoutPassword;
 }
 const checkEmailExists = async(email) =>{
     const user = await findUserByEmail(email);
-    return user.length > 0;
+    return user !== null;
 }
 module.exports = {
     allUsers,
@@ -98,4 +86,5 @@ module.exports = {
     addUser,
     loginUser,
     checkEmailExists,
+    findUserByEmail,
 };

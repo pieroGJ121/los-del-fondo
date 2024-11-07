@@ -14,7 +14,7 @@ const connectToMongoDB = async () => {
 const Schema = mongoose.Schema;
 
 const ProjectSchema = new Schema({
-  userId: { type: Number, required: true },
+  userId: { type: String, required: true },
   name: { type: String, required: true },
   createdDate: { type: Date, default: Date.now },
   surname: { type: String },
@@ -25,7 +25,7 @@ const ProjectSchema = new Schema({
 });
 
 const FileSchema = new Schema({
-  userId: { type: Number, required: true },
+  userId: { type: String, required: true },
   projectId: { type: mongoose.Types.ObjectId, ref: 'Project' }, 
   createdDate: { type: Date, default: Date.now },
   surname: { type: String },

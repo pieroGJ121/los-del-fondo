@@ -1,10 +1,14 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { useUser } from '../UserContext';
 
 const ProtectedRoute = ({ children }) => {
   const { userProfile } = useUser();
-  return userProfile ? children : <Navigate to="/" />;
+  const { username } = useParams();
+  if (!userProfile || userProfile.username !== username) {
+    return <Navigate to="/" />;
+  }
+  return children;
 };
 
 export default ProtectedRoute;
