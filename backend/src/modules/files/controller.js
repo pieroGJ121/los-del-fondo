@@ -55,7 +55,7 @@ exports.addFile = async (req, res) => {
     const response = await axios
       .get("http://127.0.0.1:8000/file", data)
       .then((response) => {
-        responseData = response.data.received_data;
+        responseData = response.data;
         console.log("Response: ");
         doorNumber = responseData.doors;
         windowNumber = responseData.windows;
@@ -66,6 +66,10 @@ exports.addFile = async (req, res) => {
       .catch((error) => {
         console.error("Error: ", error);
       });
+
+    // This shold convert the base64 string to a image buffer.
+    // This should work to save the annotated image with what is being used
+    const buffer = Buffer.from(annotatedImage, "base64");
 
     const newFile = new File({
       userId,
