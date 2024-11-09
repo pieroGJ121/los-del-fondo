@@ -206,7 +206,6 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-
 exports.deleteFile = async (req, res) => {
   try {
     const { id } = req.params;

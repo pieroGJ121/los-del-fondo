@@ -24,6 +24,4 @@ router.delete('/:parentProjectId/nest-del/', removeNestedProject);
 router.put('/:id/update-surname', updateProjectSurname);
 router.put('/:id/update-status', updateProjectStatus);
 
-
-
 module.exports = router;
