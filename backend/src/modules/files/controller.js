@@ -53,7 +53,11 @@ exports.addFile = async (req, res) => {
     };
     let annotatedImage = 0;
     const response = await axios
-      .get("http://127.0.0.1:8000/file", data)
+      .post("http://127.0.0.1:8000/file", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         responseData = response.data;
         console.log("Response: ");
