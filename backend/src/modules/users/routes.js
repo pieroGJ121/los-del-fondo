@@ -26,8 +26,8 @@ router.get('/',asyncHandler(async (req, res) => {
     response.success(req, res, items, 200);
 }));
 router.get('/:id', authenticateJWT, asyncHandler(async (req, res) => {
-    const { id } = req.params.id;
-    const { user } = req.params;
+    const  id  = req.params.id;
+    const  user = req.user;
     if (user.id !== id) return res.status(403).json({ message: 'Forbidden' });
     const items = await controller.oneUser(id);
     response.success(req, res, items, 200);
