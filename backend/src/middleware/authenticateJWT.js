@@ -2,16 +2,15 @@ const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.SECRET_KEY || 'your-secret-key';
 
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+    const token = req.header('Authorization')?.split(' ')[1];
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(403).json({ message: 'Authorization token is missing or malformed' });
+    if(!token) {
+        return res.status(403).json({ message: 'Access denied, token missing' });
     }
-
-    const token = authHeader.split(' ')[1];
     
     jwt.verify(token, SECRET_KEY, (err, user) => {
         if (err) {
+            console.log('JWT Error:', err);
             return res.status(403).json({ message: 'Invalid or expired token' });
         }
         req.user = user;
@@ -20,4 +19,3 @@ const authenticateJWT = (req, res, next) => {
 };
 
 module.exports = authenticateJWT;
-

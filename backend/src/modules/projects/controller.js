@@ -16,14 +16,12 @@ const buildPopulateQuery = (depth) => {
 exports.getProject = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { status} = req.query;
-    const { depth } = req.body;
+    const { status, depth} = req.query;
 
     const requestedDepth = parseInt(depth, 10) || 1;
     const populateQuery = buildPopulateQuery(requestedDepth);
     const query = { userId };
     if (status) query.status = status;
-
     const projects = await Project.find(query)
       .populate(populateQuery)
       .populate('files');
@@ -139,6 +137,7 @@ exports.modifyNestedProject = async (req, res) => {
 };
 
 exports.removeNestedProject = async (req, res) => {
+  console.log('Request body: ', req.body); 
   try {
     const { parentProjectId } = req.params;
     const { nestedProjectId } = req.body;
@@ -148,21 +147,24 @@ exports.removeNestedProject = async (req, res) => {
       return res.status(404).json({ message: 'Parent project not found' });
     }
 
+    if (!parentProject.nestedProjects.includes(nestedProjectId)) {
+      return res.status(400).json({ message: 'Nested project not found in the parent project' });
+    }
+
     const nestedProject = await Project.findById(nestedProjectId);
     if (!nestedProject) {
       return res.status(404).json({ message: 'Nested project not found' });
     }
+
     parentProject.nestedProjects = parentProject.nestedProjects.filter(
       nestedId => nestedId.toString() !== nestedProjectId
     );
     await parentProject.save();
-    await nestedProject.remove();
+    await Project.findByIdAndRemove(nestedProjectId);
 
-    res.status(200).json({
-      message: 'Nested project removed successfully',
-      parentProject,
-    });
+    res.status(200).json({ message: 'Nested project removed successfully' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Error removing nested project', err });
   }
 };

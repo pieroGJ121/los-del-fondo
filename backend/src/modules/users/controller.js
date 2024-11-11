@@ -28,10 +28,10 @@ module.exports = function (db) {
                     status: "default",    
                 });
                 await mainProject.save();
-                return {user:newUser};
+                return {user:newUserResponse};
             }catch(err){
                 console.log('Error Creating user or project:',err);
-                throw err;
+                throw new Error('Error creating user or project');
             }
         },
         loginUser: async (body) => {

@@ -35,9 +35,9 @@ function Login() {
         throw new Error(errorResponse.message || 'User login failed');
       } 
       const data = await response.json();
-      if(data){;
+      if(data){
         login(data.body.user);
-        console.log(data.body.user);
+        localStorage.setItem('token',data.body.token);
         localStorage.setItem('user',JSON.stringify(data.body.user));
         navigate(`/room/${data.body.user.username}`, { state: data.body.user });
       } else {

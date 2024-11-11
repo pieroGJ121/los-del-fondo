@@ -53,8 +53,6 @@ router.post('/login', asyncHandler(async (req, res) => {
     const { token, user } = await controller.loginUser(req.body);
     return response.success(req, res, { token, user }, 200);
 }));
-
-
 router.post('/verify-email', asyncHandler(async (req, res) => {
     const exists = await controller.checkEmailExists(req.body.email);
     if (exists) {
@@ -63,6 +61,4 @@ router.post('/verify-email', asyncHandler(async (req, res) => {
         response.error(req, res, 'No account found with that email.', 404);
     }
 }));
-
-
 module.exports = router;
