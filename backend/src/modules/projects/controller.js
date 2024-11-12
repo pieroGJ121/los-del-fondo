@@ -1,7 +1,5 @@
-const mongoose = require('mongoose');
 const { Project } = require('../../DB/mongodb');
 const db = require('../../DB/mysql');
-const { populate } = require('dotenv');
 
 const MAX_DEPTH = 20;
 const buildPopulateQuery = (depth) => {

@@ -1,6 +1,6 @@
 import React , {useState} from 'react';
 
-const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDeleteProject, handleFileImport, handleDeleteFile }) => {
+const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDeleteProject, handleFileImport }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isEditingSurname, setIsEditingSurname] = useState(false);
     const [surname, setSurname] = useState(folder.surname || folder.name);
@@ -13,14 +13,15 @@ const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDe
         setIsEditingSurname(false);
         onEditSurname(folder._id, surname);
     };
-  
+    const handleDeleteFile = (fileId) => {};
+
     return (
       <div style={{ marginLeft: `${level * 20}px` }} className="folder-item">
         <div>
             <span onClick={toggleOpen} >
                 {isOpen ? " ▼ " : " ► "} {""}
             </span>
-            <span onDoubleClick={handleDoubleClick}>
+            <span onDoubleClick={() => {handleDoubleClick()}}>
                 {isEditingSurname ? (
                     <input
                         type="text"

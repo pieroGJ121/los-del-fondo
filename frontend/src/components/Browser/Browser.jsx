@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FolderItem from './FolderItem';
 import SearchBar from './SearchBar';
 import '../../styles/pages/browser.scss';
@@ -8,6 +8,7 @@ const Browser = ({ token, userId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState({ field: 'name', ascending: true });
   const [loading, setLoading] = useState(true);
+  const displayedFolderIds = new Set();
 
   const fetchFolders = async (userId, depth = 5) => {
     try {
@@ -113,15 +114,20 @@ const Browser = ({ token, userId }) => {
   };
 
   const filteredFolders = folders
-    .filter((folder) => 
-      typeof searchTerm === 'string' && folder.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter((folder) => typeof searchTerm === 'string' && folder.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
       const order = sortOption.ascending ? 1 : -1;
       if (sortOption.field === 'name') return a.name.localeCompare(b.name) * order;
       if (sortOption.field === 'date') return a.latestStatusUpdate.localeCompare(b.latestStatusUpdate) * order;
       return 0;
     });
+
+    const displayFolder = (folder) => {
+      if (displayedFolderIds.has(folder._id)) return false;
+      displayedFolderIds.add(folder._id);
+      if(folder.nestedProjects) folder.nestedProjects.forEach((nestedProject) => displayFolder(nestedProject));
+      return true;
+    }
 
     const handleFileImport = async (folderId) => {
         const fileInput = document.createElement('input');
@@ -204,7 +210,9 @@ const Browser = ({ token, userId }) => {
         <div className="browser">
         <SearchBar searchTerm={searchTerm} onSearch={handleSearch} onSort={() => handleSort("name")} />
         <div className="folder-list">
-          {filteredFolders.map((folder) => (
+          {filteredFolders.map((folder) => {
+            if (!displayFolder(folder)) return null
+            return (
             <FolderItem
                 key={folder._id}
                 folder={folder} 
@@ -212,8 +220,9 @@ const Browser = ({ token, userId }) => {
                 onAddNestedProject={onAddNestedProject}
                 onDeleteProject={onDeleteProject}
                 handleFileImport={handleFileImport}
-                handleDeleteFile={handleDeleteFile} />
-          ))}
+                handleDeleteFile={handleDeleteFile}/>
+            );
+          })}
         </div>
         <div className="add-buttons">
           <button onClick={() => handleAddFolder()}> + </button>
