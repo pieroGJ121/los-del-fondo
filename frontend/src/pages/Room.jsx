@@ -24,6 +24,7 @@ const Room = ({handleLogout}) => {
   },[]);
 
   useEffect(() => {
+    console.log(userProfile);
     if(!userProfile || userProfile?.username !== username) {
       alert('You are not authorized to view this page');
     }

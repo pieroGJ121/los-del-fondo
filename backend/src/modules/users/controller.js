@@ -14,13 +14,13 @@ module.exports = function (db) {
             const saltRounds = 10;
             if (body.password) { 
                 const hashedPassword = await bcrypt.hash(body.password, saltRounds);
-                console.log('hashed password:',hashedPassword);
                 body.password = hashedPassword;
             }
             body.id = uuidv4();
             try{
                 const newUserResponse = await db.addUser(table, body);
                 const newUser = newUserResponse.user;
+                console.log('New User: ',newUser);
                 if(!newUser) throw new Error('Error creating user');
                 const mainProject = new Project({
                     userId: newUser.id,
@@ -28,7 +28,9 @@ module.exports = function (db) {
                     status: "default",    
                 });
                 await mainProject.save();
-                return {user:newUserResponse};
+                const token = jwt.sign({ id: newUser.id, username: newUser.username }, SECRET_KEY, { expiresIn: '1h' });
+                const {password, ...userWithoutPassword} = newUser;
+                return {token, user:userWithoutPassword};
             }catch(err){
                 console.log('Error Creating user or project:',err);
                 throw new Error('Error creating user or project');

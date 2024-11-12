@@ -7,9 +7,11 @@ const Browser = ({ token, userId }) => {
   const [folders, setFolders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState({ field: 'name', ascending: true });
+  const [loading, setLoading] = useState(true);
 
   const fetchFolders = async (userId, depth = 5) => {
     try {
+      setLoading(true);
       const response = await fetch(`http://localhost:4000/api/projects/${userId}?depth=${depth}`, {
         method: 'GET',
         headers: {
@@ -20,6 +22,7 @@ const Browser = ({ token, userId }) => {
       const data = await response.json();
       if (response.ok) {
         setFolders(data.projects);
+        console.log('Folders fetched successfully:', data.projects);
       } else {
         console.error('Error fetching folders:', data);
         setFolders([]);
@@ -27,23 +30,27 @@ const Browser = ({ token, userId }) => {
     } catch (error) {
       console.error('Error fetching folders:', error);
       setFolders([]);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
+    console.log('User ID: ', userId);
     if (userId && token) {
       fetchFolders(userId);
     }
   }, [userId, token]);
 
   const onAddNestedProject = async (parentId) => {
+    console.log('Adding nested project for userId: ', userId);
     try {
-        const response = await fetch(`http://localhost:4000/api/projects/${parentId}/nest-new`, {
+        const response = await fetch(`http://localhost:4000/api/projects/new-project`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId, name: "New Project" }),
+          body: JSON.stringify({ userId, name: "New Project", parentProjectId: parentId }),
         });
         const data = await response.json();
         if (response.ok) {
@@ -127,7 +134,6 @@ const Browser = ({ token, userId }) => {
             formData.append('image', file);
             formData.append('userId', userId);
             formData.append('projectId', folderId);
-            formData.append('surname', folderId);
 
             try {
                 const response = await fetch(`http://localhost:4000/api/files/${folderId}/add`, {
@@ -140,7 +146,7 @@ const Browser = ({ token, userId }) => {
             const data = await response.json();
             if (response.ok) {
                 console.log('File uploaded successfully:', data);
-                fetchFolders(userId); // Refresh the folders after upload
+                fetchFolders(userId);
             } else {
                 console.error('Error uploading file:', data);
             }
@@ -162,7 +168,7 @@ const Browser = ({ token, userId }) => {
           });
           if (response.ok) {
             console.log('File deleted successfully');
-            fetchFolders(userId); // Refresh the folders after deletion
+            fetchFolders(userId);
           } else {
             console.error('Error deleting file');
           }
@@ -170,6 +176,29 @@ const Browser = ({ token, userId }) => {
           console.error('Error deleting file:', error);
         }
       };
+
+    const handleAddFolder = async () => {
+      console.log('creating nested project for userId: ', userId);
+      try {
+        const response = await fetch(`http://localhost:4000/api/projects/new-project`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId, name: 'New Project' }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          fetchFolders(userId);
+        } else {
+          console.error('Error creating project:', data.message);
+        }
+      } catch (error) {
+        console.error('Error creating project:', error);
+      }
+    };
+    const handleImportFolder = async () => {};
 
     return (
         <div className="browser">
@@ -185,6 +214,10 @@ const Browser = ({ token, userId }) => {
                 handleFileImport={handleFileImport}
                 handleDeleteFile={handleDeleteFile} />
           ))}
+        </div>
+        <div className="add-buttons">
+          <button onClick={() => handleAddFolder()}> + </button>
+          <button onClick={() => handleImportFolder}> ↥ </button>
         </div>
       </div>
     );

@@ -60,7 +60,7 @@ const addUser = async (table, data) => {
         data.id = uuidv4();
     }
     const result = await insertUser(table, data);
-    return {user: {...data, id: result.insertId}};
+    return {user: {...data, id: data.id}};
 };
 const findUserByEmail = async(email) =>{
     const result = await query(`SELECT * FROM users WHERE email = ?`, [email]);
