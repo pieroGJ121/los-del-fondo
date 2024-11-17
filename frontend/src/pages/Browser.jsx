@@ -10,65 +10,6 @@ const Browser = ({ onFileSelect }) => {
   const contentInputRef = useRef(null);
   const folderInputRef = useRef(null);
 
-  const handleFileClick = (file) => {
-    if (!file.file) return;
-    onFileSelect({
-      name: file.name,
-      size: file.file.size || 0,
-      type: file.file.type || 'unknown',
-      URL: URL.createObjectURL(file.file),
-    });
-  };
-
-  const handleAddFolder = (parentId = null) => {
-    const newFolder = {
-      id: Date.now(),
-      name: `New Folder ${folders.length + 1}`,
-      files: [],
-      isEditing: false,
-      isExpanded: true,
-      isImported: false,
-    };
-    if (parentId === null) {
-      setFolders((prevFolders) => [...prevFolders, newFolder]);
-    } else {
-      const updatedFolders = addFolderToParent(folders, parentId, newFolder);
-      setFolders(updatedFolders);
-    }
-  };
-
-  const addFolderToParent = (folders, parentId, newFolder) => {
-    return folders.map((folder) => {
-      if (folder.id === parentId) {
-        return { ...folder, files: [...(folder.files || []), newFolder] };
-      }
-      if (folder.files && folder.files.length) {
-        return { ...folder, files: addFolderToParent(folder.files, parentId, newFolder) };
-      }
-      return folder;
-    });
-  };
-
-  const handleDeleteFolder = (id) => {
-    setFolders(deleteFolderById(folders, id));
-  };
-
-  const deleteFolderById = (folders, id) => {
-    return folders
-      .map((folder) => {
-        if (folder.id === id) return null;
-        if (folder.files && folder.files.length) {
-          return { ...folder, files: deleteFolderById(folder.files, id) };
-        }
-        return folder;
-      })
-      .filter((folder) => folder !== null);
-  };
-
-  const handleToggleFolder = (id) => {
-    setFolders((folders) => toggleFolderRecursive(folders, id));
-  };
-
   const toggleFolderRecursive = (folders, id) => {
     return folders.map((folder) => {
       if (folder.id === id) {
@@ -79,19 +20,6 @@ const Browser = ({ onFileSelect }) => {
       }
       return folder;
     });
-  };
-
-  const handleImportFolder = () => {
-    if (folderInputRef.current) {
-      folderInputRef.current.click();
-    }
-  };
-
-  const handleAddContent = (parentId) => {
-    if (contentInputRef.current) {
-      contentInputRef.current.parentId = parentId; 
-      contentInputRef.current.click();
-    }
   };
 
   const handleFilesSelection = async (event) => {
@@ -126,18 +54,6 @@ const Browser = ({ onFileSelect }) => {
       return folder;
     });
   };
-
-  const sortedFolders = folders
-    .filter((folder) => {
-      const folderMatches = folder.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const filesMatch = folder.files && folder.files.some((file) => file.name.toLowerCase().includes(searchTerm.toLowerCase()));
-      return folderMatches || filesMatch;
-    })
-    .sort((a, b) => {
-      const order = sortOption.ascending ? 1 : -1;
-      if (sortOption.field === 'name') return a.name.localeCompare(b.name) * order;
-      return 0; 
-    });
 
   const renderFolders = (folders, depth = 0) => {
     return folders.map((folder) => (

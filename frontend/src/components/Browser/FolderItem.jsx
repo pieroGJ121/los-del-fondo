@@ -1,9 +1,22 @@
-import React , {useState} from 'react';
+import React , {useState, useEffect} from 'react';
 
-const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDeleteProject, handleFileImport }) => {
+const FolderItem = ({ 
+  folder, 
+  level = 0,
+  onEditSurname, 
+  onAddNestedProject, 
+  onDeleteProject, 
+  handleFileImport,
+  onDeleteFile,
+  fetchFileById,
+  onEditFileSurname,
+}) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isEditingSurname, setIsEditingSurname] = useState(false);
     const [surname, setSurname] = useState(folder.surname || folder.name);
+    const [fileDetails, setFileDetails] = useState({});
+    const [editingFile, setEditingFile] = useState(null);
+
     const nestedProjects = folder.nestedProjects || [];
     const files = folder.files || [];
   
@@ -13,7 +26,22 @@ const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDe
         setIsEditingSurname(false);
         onEditSurname(folder._id, surname);
     };
-    const handleDeleteFile = (fileId) => {};
+    const fetchAndSetFileDetails = async (fileId) => {
+      if (!fileDetails[fileId]) {
+        const fileData = await fetchFileById(fileId);
+        setFileDetails((prevDetails) => ({
+          ...prevDetails,
+          [fileId]: fileData.file?.surname || fileId,
+        }));
+      }
+    };
+
+    useEffect(() => {
+      files.forEach((file) => {
+        const fileId = typeof file === 'string' ? file : file._id;
+        fetchAndSetFileDetails(fileId);
+      });
+    },[files]);
 
     return (
       <div style={{ marginLeft: `${level * 20}px` }} className="folder-item">
@@ -40,16 +68,43 @@ const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDe
         </div>
         {isOpen && (
           <>
-            {files.length > 0 && (
-              <div className="file-list">
-                {files.map((file, idx) => (
-                  <div key={file._id || idx} className="file-item">
-                    <span>File: {file.name || "Untitled"}</span>
-                    <button onClick={() => handleDeleteFile(file._id)}>Delete</button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="files">
+              {files.length > 0 && (
+                <ul className = "file-list">
+                  {files.map((file, index) => {
+                    const fileId = typeof file === 'string' ? file : file._id;
+                    return (
+                      <li key={fileId} className="file-item">
+                      {editingFile === fileId ? (
+                        <input
+                          type="text"
+                          value={fileDetails[fileId] || ''}
+                          onChange={(e) =>
+                            setFileDetails((prev) => ({
+                              ...prev,
+                              [fileId]: e.target.value,
+                            }))
+                          }
+                          onBlur={() => {
+                            setEditingFile(null);
+                            onEditFileSurname(fileId, fileDetails[fileId]);
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        <span
+                          onDoubleClick={() => setEditingFile(fileId)}
+                        >
+                          {fileDetails[fileId] || 'Loading...'}
+                        </span>
+                      )}
+                      <button onClick={() => onDeleteFile(fileId)}>-</button>
+                    </li>
+                    );
+                  })}
+                  </ul>
+              )}
+            </div>
             {nestedProjects.length > 0 && (
               <div className="nested-projects">
                 {nestedProjects.map((nestedFolder) => (
@@ -61,7 +116,9 @@ const FolderItem = ({ folder, level = 0, onEditSurname, onAddNestedProject, onDe
                     onAddNestedProject={onAddNestedProject}
                     onDeleteProject={onDeleteProject}
                     handleFileImport={handleFileImport}
-                    handleDeleteFile={handleDeleteFile}
+                    onDeleteFile={onDeleteFile}
+                    fetchFileById={fetchFileById}
+                    onEditFileSurname={onEditFileSurname}
                     />
                 ))}
               </div>
