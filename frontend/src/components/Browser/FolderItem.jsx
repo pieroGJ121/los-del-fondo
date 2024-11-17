@@ -10,6 +10,7 @@ const FolderItem = ({
   onDeleteFile,
   fetchFileById,
   onEditFileSurname,
+  onFileSelect
 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isEditingSurname, setIsEditingSurname] = useState(false);
@@ -34,6 +35,10 @@ const FolderItem = ({
           [fileId]: fileData.file?.surname || fileId,
         }));
       }
+    };
+    const handleFileClick = async (fileId) => {
+      const fileData = await fetchFileById(fileId);
+      onFileSelect(fileData.file);
     };
 
     useEffect(() => {
@@ -70,7 +75,7 @@ const FolderItem = ({
           <>
             <div className="files">
               {files.length > 0 && (
-                <ul className = "file-list">
+                <ul style={{ marginLeft: `${level * 30}px` }}  className = "file-list">
                   {files.map((file, index) => {
                     const fileId = typeof file === 'string' ? file : file._id;
                     return (
@@ -94,6 +99,7 @@ const FolderItem = ({
                       ) : (
                         <span
                           onDoubleClick={() => setEditingFile(fileId)}
+                          onClick={() => handleFileClick(fileId)}
                         >
                           {fileDetails[fileId] || 'Loading...'}
                         </span>
@@ -119,6 +125,7 @@ const FolderItem = ({
                     onDeleteFile={onDeleteFile}
                     fetchFileById={fetchFileById}
                     onEditFileSurname={onEditFileSurname}
+                    onFileSelect={onFileSelect}
                     />
                 ))}
               </div>

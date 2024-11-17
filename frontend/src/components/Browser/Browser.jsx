@@ -3,7 +3,7 @@ import FolderItem from './FolderItem';
 import SearchBar from './SearchBar';
 import '../../styles/pages/browser.scss';
 
-const Browser = ({ token, userId }) => {
+const Browser = ({ token, userId, onFileSelect }) => {
   const [folders, setFolders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState({ field: 'name', ascending: true });
@@ -153,7 +153,6 @@ const Browser = ({ token, userId }) => {
 
   const fetchFileById = async (folderIdString) => {
     try {
-      console.log(folderIdString);
         const response = await fetch(`http://localhost:4000/api/files/${folderIdString}`,{
             method: 'GET',
             headers: {
@@ -275,7 +274,6 @@ const Browser = ({ token, userId }) => {
         console.error('Error creating project:', error);
       }
     };
-
     const handleImportFolder = async () => {};
 
     return (
@@ -295,6 +293,7 @@ const Browser = ({ token, userId }) => {
                 onDeleteFile={onDeleteFile}
                 fetchFileById={fetchFileById}
                 onEditFileSurname={handleEditFileSurname}
+                onFileSelect={onFileSelect}
                 />
             );
           })}

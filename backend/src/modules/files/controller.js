@@ -85,6 +85,8 @@ exports.addFile = async (req, res) => {
       const textNumber = matches.texts || 0;
       const aiContent = JSON.stringify(matches);
 
+      const imageUrl = `/uploads/${req.user.username}/${req.file.filename}`;
+
       const newFile = new File({
         userId,
         projectId: projectObjectId,
@@ -92,7 +94,7 @@ exports.addFile = async (req, res) => {
         doorNumber,
         windowNumber,
         textNumber,
-        image:"", //: annotated_image_coded, 
+        image:imageUrl, //: annotated_image_coded, 
         aiContent,
       });
 
