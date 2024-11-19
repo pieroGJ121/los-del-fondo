@@ -15,9 +15,9 @@ const initialFields = [
 ];
 
 function SignUp({ onSignUp }) {
-  const { setUserProfile } = useUser();
+  const { login } = useUser();
   const [formData, setFormData] = useState({});
-  const [fields, setFields] = useState(initialFields);
+  const [fields] = useState(initialFields);
   const navigate = useNavigate();
 
   const fillData = () => {
@@ -65,11 +65,12 @@ function SignUp({ onSignUp }) {
           throw new Error(errorResponse.message || 'User registration failed');
         }
         const data = await response.json();
-        if(data.body.user) {
-          const user = data.body.user;
-          setUserProfile(user.username);
-          onSignUp(user.username);
-          navigate(`/room/${user.username}`, { state: user });
+        if(data) {
+          console.log('API response:',data);
+          login(data.body.user);
+          localStorage.setItem('token', data.body.token); 
+          localStorage.setItem('user', JSON.stringify(data.body.user));
+          navigate(`/room/${data.body.user.username}`, { state: data.body.user });
         } else {
           alert('User data is missing');
         }

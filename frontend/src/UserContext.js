@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(() => {
     const savedProfile = localStorage.getItem('userProfile');
-    return savedProfile ? JSON.parse(savedProfile) : null;
+    try {
+      return savedProfile ? JSON.parse(savedProfile) : null;
+    } catch (err){
+      console.error(err);
+      return null;
+    }
   });
 
   useEffect(() => {

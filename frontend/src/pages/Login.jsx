@@ -4,7 +4,7 @@ import { useUser } from '../UserContext';
 import '../styles/pages/login.scss';
 
 function Login() {
-  const { setUserProfile } = useUser();
+  const { login } = useUser();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -36,8 +36,10 @@ function Login() {
       } 
       const data = await response.json();
       if(data){
-        setUserProfile(data.body.username);
-        navigate(`/room/${data.body.username}`, { state: data.body });
+        login(data.body.user);
+        localStorage.setItem('token',data.body.token);
+        localStorage.setItem('user',JSON.stringify(data.body.user));
+        navigate(`/room/${data.body.user.username}`, { state: data.body.user });
       } else {
         alert('User data is missing');
       }

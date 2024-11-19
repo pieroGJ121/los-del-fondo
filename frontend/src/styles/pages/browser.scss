@@ -113,6 +113,13 @@
         margin: 0.5rem 0; // Add spacing above and below the line
       }
     }
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin: 0 5px;
+      font-weight: bold;
+    }
   }
 
   .add-buttons {
