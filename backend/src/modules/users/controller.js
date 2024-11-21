@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = process.env.SECRET_KEY || "secretkey";
-const { logger } = require("../../utils/logger");
+const logger = require("../../utils/logger");
 
 module.exports = function (db) {
   return {

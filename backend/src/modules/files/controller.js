@@ -7,7 +7,7 @@ const { exec } = require("child_process");
 const util = require("util");
 const execPromise = util.promisify(exec);
 const allowedTypes = /jpeg|jpg|png|gif|bmp|webp|tiff/;
-const { logger } = require("../../utils/logger");
+const logger = require("../../utils/logger");
 
 const fileFilter = (req, file, cb) => {
   if (!file) return cb(new Error("No file uploaded"));

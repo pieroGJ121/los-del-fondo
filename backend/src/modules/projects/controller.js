@@ -1,6 +1,6 @@
 const { Project } = require("../../DB/mongodb");
 const db = require("../../DB/mysql");
-const { logger } = require("../../utils/logger");
+const logger = require("../../utils/logger");
 
 const MAX_DEPTH = 20;
 const buildPopulateQuery = (depth) => {
